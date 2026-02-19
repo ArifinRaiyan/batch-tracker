@@ -30,7 +30,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Prevents pull-to-refresh on mobile */
             overscroll-behavior-y: contain; 
         }
         h2 {
@@ -78,6 +77,12 @@
             gap: 10px;
             margin-bottom: 15px;
         }
+        .lecture-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
         .lecture-checkbox {
             appearance: none;
             width: 100%;
@@ -99,6 +104,12 @@
             color: #000;
             font-weight: bold;
             font-size: 1.2rem;
+        }
+        .date-text {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-align: center;
+            min-height: 14px;
         }
         .reset-btn {
             background-color: transparent;
@@ -128,10 +139,8 @@
     <div id="app"></div>
 
     <script>
-        // Updated subjects list without Bangla
         const subjects = ["Chemistry", "English", "Physics", "Math", "Biology", "ICT"];
         const app = document.getElementById('app');
-
         let trackingData = JSON.parse(localStorage.getItem('tuitionTrackerData')) || {};
 
         function renderApp() {
@@ -139,10 +148,18 @@
             
             subjects.forEach(subject => {
                 if (!trackingData[subject]) {
-                    trackingData[subject] = Array(12).fill(false);
+                    trackingData[subject] = Array(12).fill({ checked: false, date: "" });
                 }
 
-                const completedCount = trackingData[subject].filter(Boolean).length;
+                // Upgrades older data so it doesn't break
+                trackingData[subject] = trackingData[subject].map(item => {
+                    if (typeof item === 'boolean') {
+                        return { checked: item, date: item ? new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : "" };
+                    }
+                    return item;
+                });
+
+                const completedCount = trackingData[subject].filter(item => item.checked).length;
                 const isDue = completedCount === 12;
 
                 const card = document.createElement('div');
@@ -163,25 +180,40 @@
 
                 const grid = document.getElementById(`grid-${subject}`);
                 for (let i = 0; i < 12; i++) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'lecture-wrapper';
+
                     const cb = document.createElement('input');
                     cb.type = 'checkbox';
                     cb.className = 'lecture-checkbox';
-                    cb.checked = trackingData[subject][i];
+                    cb.checked = trackingData[subject][i].checked;
                     
+                    const dateLabel = document.createElement('div');
+                    dateLabel.className = 'date-text';
+                    dateLabel.innerText = trackingData[subject][i].date || "";
+
                     cb.addEventListener('change', (e) => {
-                        trackingData[subject][i] = e.target.checked;
+                        const isChecked = e.target.checked;
+                        const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); 
+                        
+                        trackingData[subject][i] = {
+                            checked: isChecked,
+                            date: isChecked ? today : ""
+                        };
                         saveData();
                         renderApp(); 
                     });
                     
-                    grid.appendChild(cb);
+                    wrapper.appendChild(cb);
+                    wrapper.appendChild(dateLabel);
+                    grid.appendChild(wrapper);
                 }
             });
         }
 
         function resetSubject(subject) {
             if(confirm(`Are you sure you want to reset the count for ${subject}?`)) {
-                trackingData[subject] = Array(12).fill(false);
+                trackingData[subject] = Array(12).fill({ checked: false, date: "" });
                 saveData();
                 renderApp();
             }
