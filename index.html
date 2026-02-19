@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Batch Private Tracker</title>
+    <title>Batch Tracker</title>
     
-    <meta name="theme-color" content="#121212">
+    <meta name="theme-color" content="#0a0a0a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3048/3048122.png">
@@ -13,20 +13,20 @@
 
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #ffffff;
-            --text-muted: #a0a0a0;
-            --accent: #bb86fc;
-            --success: #03dac6;
-            --danger: #cf6679;
+            --bg-color: #0a0a0a;
+            --card-bg: #141414;
+            --border-color: #262626;
+            --text-main: #ededed;
+            --text-muted: #737373;
+            --accent: #ffffff;
+            --danger: #ef4444;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -34,197 +34,60 @@
         }
         h2 {
             text-align: center;
-            color: var(--accent);
-            margin-bottom: 30px;
-            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-bottom: 40px;
+            font-size: 1.4rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
         .subject-card {
             background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
             margin-bottom: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 450px;
             box-sizing: border-box;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 24px;
         }
         .subject-title {
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        .count-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-left: 6px;
+            font-weight: 400;
         }
         .status-badge {
-            padding: 5px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            background-color: var(--text-muted);
-            color: #000;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .status-badge.due {
-            background-color: var(--danger);
-            color: #fff;
-            animation: pulse 1.5s infinite;
+            border-color: rgba(239, 68, 68, 0.4);
+            color: var(--danger);
+            background-color: rgba(239, 68, 68, 0.05);
         }
         .checkbox-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 16px 10px;
+            margin-bottom: 24px;
         }
         .lecture-wrapper {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-        .lecture-checkbox {
-            appearance: none;
-            width: 100%;
-            aspect-ratio: 1;
-            background-color: #333;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-            margin: 0;
-        }
-        .lecture-checkbox:checked {
-            background-color: var(--success);
-        }
-        .lecture-checkbox:checked::after {
-            content: '✓';
-            color: #000;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-        .date-text {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            text-align: center;
-            min-height: 14px;
-        }
-        .reset-btn {
-            background-color: transparent;
-            color: var(--text-muted);
-            border: 1px solid var(--text-muted);
-            padding: 10px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            transition: 0.2s;
-            font-size: 1rem;
-        }
-        .reset-btn:hover {
-            background-color: var(--text-muted);
-            color: #000;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-    </style>
-</head>
-<body>
-
-    <h2>📚 Batch Private Tracker</h2>
-    <div id="app"></div>
-
-    <script>
-        const subjects = ["Chemistry", "English", "Physics", "Math", "Biology", "ICT"];
-        const app = document.getElementById('app');
-        let trackingData = JSON.parse(localStorage.getItem('tuitionTrackerData')) || {};
-
-        function renderApp() {
-            app.innerHTML = ''; 
+            flex-direction: column
             
-            subjects.forEach(subject => {
-                if (!trackingData[subject]) {
-                    trackingData[subject] = Array(12).fill({ checked: false, date: "" });
-                }
-
-                // Upgrades older data so it doesn't break
-                trackingData[subject] = trackingData[subject].map(item => {
-                    if (typeof item === 'boolean') {
-                        return { checked: item, date: item ? new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : "" };
-                    }
-                    return item;
-                });
-
-                const completedCount = trackingData[subject].filter(item => item.checked).length;
-                const isDue = completedCount === 12;
-
-                const card = document.createElement('div');
-                card.className = 'subject-card';
-
-                card.innerHTML = `
-                    <div class="header-row">
-                        <div class="subject-title">${subject} <span style="font-size: 0.9rem; color: #a0a0a0;">(${completedCount}/12)</span></div>
-                        <div class="status-badge ${isDue ? 'due' : ''}">
-                            ${isDue ? 'PAYMENT DUE' : 'In Progress'}
-                        </div>
-                    </div>
-                    <div class="checkbox-grid" id="grid-${subject}"></div>
-                    <button class="reset-btn" onclick="resetSubject('${subject}')">Reset for Next Month</button>
-                `;
-
-                app.appendChild(card);
-
-                const grid = document.getElementById(`grid-${subject}`);
-                for (let i = 0; i < 12; i++) {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'lecture-wrapper';
-
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.className = 'lecture-checkbox';
-                    cb.checked = trackingData[subject][i].checked;
-                    
-                    const dateLabel = document.createElement('div');
-                    dateLabel.className = 'date-text';
-                    dateLabel.innerText = trackingData[subject][i].date || "";
-
-                    cb.addEventListener('change', (e) => {
-                        const isChecked = e.target.checked;
-                        const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); 
-                        
-                        trackingData[subject][i] = {
-                            checked: isChecked,
-                            date: isChecked ? today : ""
-                        };
-                        saveData();
-                        renderApp(); 
-                    });
-                    
-                    wrapper.appendChild(cb);
-                    wrapper.appendChild(dateLabel);
-                    grid.appendChild(wrapper);
-                }
-            });
-        }
-
-        function resetSubject(subject) {
-            if(confirm(`Are you sure you want to reset the count for ${subject}?`)) {
-                trackingData[subject] = Array(12).fill({ checked: false, date: "" });
-                saveData();
-                renderApp();
-            }
-        }
-
-        function saveData() {
-            localStorage.setItem('tuitionTrackerData', JSON.stringify(trackingData));
-        }
-
-        renderApp();
-    </script>
-
-</body>
-</html>
