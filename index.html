@@ -89,5 +89,169 @@
         }
         .lecture-wrapper {
             display: flex;
-            flex-direction: column
-            
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .lecture-checkbox {
+            appearance: none;
+            width: 32px;
+            height: 32px;
+            background-color: transparent;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            margin: 0;
+        }
+        .lecture-checkbox:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+        .lecture-checkbox:checked::after {
+            content: '✓';
+            color: #000;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .date-text {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-align: center;
+            min-height: 14px;
+            font-weight: 400;
+        }
+        .reset-btn {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+        .reset-btn:hover {
+            color: var(--text-main);
+        }
+        .error-msg {
+            color: var(--danger);
+            text-align: center;
+            padding: 20px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Batch Tracker</h2>
+    <div id="app"></div>
+
+    <script>
+        const subjects = ["Chemistry", "English", "Physics", "Math", "Biology", "ICT"];
+        const app = document.getElementById('app');
+        
+        // Safety net: Try to load data, if it's completely corrupted, start fresh
+        let trackingData = {};
+        try {
+            trackingData = JSON.parse(localStorage.getItem('tuitionTrackerData')) || {};
+        } catch (e) {
+            trackingData = {};
+        }
+
+        function renderApp() {
+            try {
+                app.innerHTML = ''; 
+                
+                subjects.forEach(subject => {
+                    if (!trackingData[subject] || !Array.isArray(trackingData[subject])) {
+                        trackingData[subject] = Array(12).fill({ checked: false, date: "" });
+                    }
+
+                    // Strict safety check for old data formats
+                    trackingData[subject] = trackingData[subject].map(item => {
+                        if (typeof item === 'boolean') {
+                            return { checked: item, date: item ? new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : "" };
+                        }
+                        if (!item || typeof item !== 'object') {
+                            return { checked: false, date: "" };
+                        }
+                        return item;
+                    });
+
+                    const completedCount = trackingData[subject].filter(item => item && item.checked).length;
+                    const isDue = completedCount >= 12;
+
+                    const card = document.createElement('div');
+                    card.className = 'subject-card';
+
+                    card.innerHTML = `
+                        <div class="header-row">
+                            <div class="subject-title">${subject} <span class="count-text">${completedCount}/12</span></div>
+                            <div class="status-badge ${isDue ? 'due' : ''}">
+                                ${isDue ? 'Payment Due' : 'Active'}
+                            </div>
+                        </div>
+                        <div class="checkbox-grid" id="grid-${subject}"></div>
+                        <button class="reset-btn" onclick="resetSubject('${subject}')">Reset progress</button>
+                    `;
+
+                    app.appendChild(card);
+
+                    const grid = document.getElementById(`grid-${subject}`);
+                    for (let i = 0; i < 12; i++) {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'lecture-wrapper';
+
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.className = 'lecture-checkbox';
+                        cb.checked = trackingData[subject][i].checked;
+                        
+                        const dateLabel = document.createElement('div');
+                        dateLabel.className = 'date-text';
+                        dateLabel.innerText = trackingData[subject][i].date || "";
+
+                        cb.addEventListener('change', (e) => {
+                            const isChecked = e.target.checked;
+                            const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); 
+                            
+                            trackingData[subject][i] = {
+                                checked: isChecked,
+                                date: isChecked ? today : ""
+                            };
+                            saveData();
+                            renderApp(); 
+                        });
+                        
+                        wrapper.appendChild(cb);
+                        wrapper.appendChild(dateLabel);
+                        grid.appendChild(wrapper);
+                    }
+                });
+            } catch (error) {
+                app.innerHTML = `<div class="error-msg"><strong>Error loading app!</strong><br><br>Please tap the padlock icon near your URL bar, select 'Cookies and site data', and delete the data for this site to fix it.</div>`;
+            }
+        }
+
+        function resetSubject(subject) {
+            if(confirm(`Reset all checkmarks for ${subject}?`)) {
+                trackingData[subject] = Array(12).fill({ checked: false, date: "" });
+                saveData();
+                renderApp();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('tuitionTrackerData', JSON.stringify(trackingData));
+        }
+
+        renderApp();
+    </script>
+
+</body>
+</html>
